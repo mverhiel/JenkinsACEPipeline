@@ -31,11 +31,6 @@ pipeline {
             CALL "%ACE_COMMAND%" IntegrationServer -w %TEMP%\\ace-server --test-project serverinfo-test --start-msgflows false 
             '''
       }
-      post {
-        always {
-            junit '**/junit-reports/TEST*.xml'
-        }
-      }
     }
 
     stage('ACE deploy') {
