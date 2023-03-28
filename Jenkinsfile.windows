@@ -12,9 +12,16 @@ pipeline {
   }
   environment {
     ACE_COMMAND = "C:\\Program Files\\IBM\\ACE\\12.0.5.0\\ace"
+	ACE_NODE = "ACENODE01"
+	ACE_HOST = "127.0.0.1"
+	ACE_PORT = "4414"
+	ACE_SERVER = "IS01"
+	ACE_APP = "serverInfo"
+	DEPLOY_ENV = "dev"
+	SVC_NAME = "serverinfo"
   }
   stages {
-    stage('ACE build and UT') {
+    stage('ACE unit test') {
       steps {
         bat '''
             dir /o:d
@@ -26,18 +33,19 @@ pipeline {
               rmdir /q /s junit-reports
             )
             CALL "%ACE_COMMAND%" mqsicreateworkdir %TEMP%\\ace-server
-			CALL "%ACE_COMMAND%" ibmint deploy --input-bar-file %WORKSPACE%\\bars\\serverinfo.bar --output-work-directory %TEMP%\\ace-server
-            CALL "%ACE_COMMAND%" ibmint deploy --input-bar-file %WORKSPACE%\\bars\\serverinfo-test.bar --output-work-directory %TEMP%\\ace-server
-            CALL "%ACE_COMMAND%" IntegrationServer -w %TEMP%\\ace-server --test-project serverinfo-test --start-msgflows false 
+			CALL "%ACE_COMMAND%" ibmint deploy --input-bar-file %WORKSPACE%\\bars\\%SVC_NAME%.bar --output-work-directory %TEMP%\\ace-server
+            CALL "%ACE_COMMAND%" ibmint deploy --input-bar-file %WORKSPACE%\\bars\\%SVC_NAME%-test.bar --output-work-directory %TEMP%\\ace-server
+            CALL "%ACE_COMMAND%" IntegrationServer -w %TEMP%\\ace-server --test-project %SVC_NAME%-test --start-msgflows false 
             '''
       }
     }
 
-    stage('ACE deploy') {
+    stage('ACE apply overrides and deploy') {
       steps {
         bat '''
-            CALL "%ACE_COMMAND%"  ibmint deploy --output-host 127.0.0.1 --output-port 4414 --output-server IS01 --input-bar-file %WORKSPACE%\\bars\\serverinfo.bar --overrides-file %WORKSPACE%\\env\\dev\\overrides\\serverinfo.properties
-            CALL "%ACE_COMMAND%"  mqsilist -i 127.0.0.1 -p 4414 -e IS01
+		    CALL "%ACE_COMMAND%"  mqsiapplybaroverrides -b %WORKSPACE%\\bars\\%SVC_NAME%.bar -k %ACE_APP% -p %WORKSPACE%\\env\\%DEPLOY_ENV%\\overrides\\%SVC_NAME%.properties 
+            CALL "%ACE_COMMAND%"  ibmint deploy --output-host %ACE_HOST% --output-port %ACE_PORT% --output-server %ACE_SERVER% --input-bar-file %WORKSPACE%\\bars\\%SVC_NAME%.bar 
+            CALL "%ACE_COMMAND%"  mqsilist -i %ACE_HOST% -p %ACE_PORT% -e %ACE_SERVER%
 		    '''
       }
     }
