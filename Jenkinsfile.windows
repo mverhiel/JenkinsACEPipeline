@@ -12,11 +12,6 @@ pipeline {
   }
   environment {
     ACE_COMMAND = "C:\\Program Files\\IBM\\ACE\\12.0.5.0\\ace"
-	ACE_HOST = ${params.integrationNodeHost}
-	ACE_PORT = ${params.integrationNodePort}
-	ACE_SERVER = ${params.integrationServerName}
-	SVC_NAME = ${params.svcName}
-	
   }
   stages {
     stage('ACE build and UT') {
@@ -31,9 +26,9 @@ pipeline {
               rmdir /q /s junit-reports
             )
             CALL "%ACE_COMMAND%" mqsicreateworkdir %TEMP%\\ace-server
-			CALL "%ACE_COMMAND%" ibmint deploy --input-bar-file %WORKSPACE%\\bars\\%SVC_NAME%.bar --output-work-directory %TEMP%\\ace-server
-            CALL "%ACE_COMMAND%" ibmint deploy --input-bar-file %WORKSPACE%\\bars\\%SVC_NAME%-test.bar --output-work-directory %TEMP%\\ace-server
-            CALL "%ACE_COMMAND%" IntegrationServer -w %TEMP%\\ace-server --test-project %SVC_NAME%-test --start-msgflows false --test-junit-options --reports-dir=junit-reports
+			CALL "%ACE_COMMAND%" ibmint deploy --input-bar-file %WORKSPACE%\\bars\\serverinfo.bar --output-work-directory %TEMP%\\ace-server
+            CALL "%ACE_COMMAND%" ibmint deploy --input-bar-file %WORKSPACE%\\bars\\serverinfo-test.bar --output-work-directory %TEMP%\\ace-server
+            CALL "%ACE_COMMAND%" IntegrationServer -w %TEMP%\\ace-server --test-project serverinfo-test --start-msgflows false --test-junit-options --reports-dir=junit-reports
             '''
       }
       post {
@@ -46,8 +41,8 @@ pipeline {
     stage('ACE deploy') {
       steps {
         bat '''
-            CALL "%ACE_COMMAND%"  ibmint deploy --output-host %ACE_HOST% --output-port %ACE_PORT% --output-server %ACE_SERVER% --input-bar-file %WORKSPACE%\\bars\\${params.svcName}.bar --overrides-file %WORKSPACE%\\env\\dev\\overrides\\%SVC_NAME%.properties
-            CALL "%ACE_COMMAND%"  mqsilist -i %ACE_HOST% -p %ACE_PORT% -e %ACE_SERVER%
+            CALL "%ACE_COMMAND%"  ibmint deploy --output-host 127.0.0.1 --output-port 4414 --output-server IS01 --input-bar-file %WORKSPACE%\\bars\\serverinfo.bar --overrides-file %WORKSPACE%\\env\\dev\\overrides\\serverinfo.properties
+            CALL "%ACE_COMMAND%"  mqsilist -i 127.0.0.1 -p 4414 -e IS01
 		    '''
       }
     }
