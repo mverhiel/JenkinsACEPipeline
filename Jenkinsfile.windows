@@ -43,7 +43,7 @@ pipeline {
     stage('ACE apply overrides and deploy') {
       steps {
         bat '''
-		    CALL "%ACE_COMMAND%"  mqsiapplybaroverrides -b %WORKSPACE%\\bars\\%SVC_NAME%.bar -k %ACE_APP% -p %WORKSPACE%\\env\\%DEPLOY_ENV%\\overrides\\%SVC_NAME%.properties 
+		    CALL "%ACE_COMMAND%"  mqsiapplybaroverride -b %WORKSPACE%\\bars\\%SVC_NAME%.bar -k %ACE_APP% -p %WORKSPACE%\\env\\%DEPLOY_ENV%\\overrides\\%SVC_NAME%.properties 
             CALL "%ACE_COMMAND%"  ibmint deploy --output-host %ACE_HOST% --output-port %ACE_PORT% --output-server %ACE_SERVER% --input-bar-file %WORKSPACE%\\bars\\%SVC_NAME%.bar 
             CALL "%ACE_COMMAND%"  mqsilist -i %ACE_HOST% -p %ACE_PORT% -e %ACE_SERVER%
 		    '''
