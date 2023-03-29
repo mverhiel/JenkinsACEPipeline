@@ -22,6 +22,10 @@ pipeline {
             IF EXIST "junit-reports" (
               rmdir /q /s junit-reports
             )
+			
+			echo "build-env:" %build-env%
+		    CALL %WORKSPACE%\\%build-env%\\env-var\\set-env.bat"
+			
             CALL "%ACE_COMMAND%" mqsicreateworkdir %TEMP%\\ace-server
 			CALL "%ACE_COMMAND%" ibmint deploy --input-bar-file %WORKSPACE%\\bars\\%SVC_NAME%.bar --output-work-directory %TEMP%\\ace-server
             CALL "%ACE_COMMAND%" ibmint deploy --input-bar-file %WORKSPACE%\\bars\\%SVC_NAME%-test.bar --output-work-directory %TEMP%\\ace-server
