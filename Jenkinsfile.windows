@@ -29,9 +29,14 @@ pipeline {
             CALL "%ACE_COMMAND%" mqsicreateworkdir %TEMP%\\ace-server
 			CALL "%ACE_COMMAND%" ibmint deploy --input-bar-file %WORKSPACE%\\bars\\%SVC_NAME%.bar --output-work-directory %TEMP%\\ace-server
             CALL "%ACE_COMMAND%" ibmint deploy --input-bar-file %WORKSPACE%\\bars\\%SVC_NAME%-test.bar --output-work-directory %TEMP%\\ace-server
-            CALL "%ACE_COMMAND%" IntegrationServer -w %TEMP%\\ace-server --test-project %SVC_NAME%-test --start-msgflows false 
+            CALL "%ACE_COMMAND%" IntegrationServer -w %TEMP%\\ace-server --test-project %SVC_NAME%-test "--reports-dir=junit-reports --include-classname=.+TestClass" 
             '''
       }
+      post {
+        always {
+            junit '**/junit-reports/TEST*.xml'
+        }
+      }	  
     }
 
     stage('ACE apply overrides and deploy') {
