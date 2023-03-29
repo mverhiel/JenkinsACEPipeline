@@ -5,16 +5,10 @@ pipeline {
     /* the Config File Provider plugin (or equivalent), but this is good enough   */
     /* for a demo of ACE pipelines that isn't intended as a Jenkins tutorial.     */
     string(name: 'parm1', defaultValue: 'value', description: 'Some parm')
+	choice(name: 'build-env', choices: ['dev', 'sit', 'prod'], description: 'the build environment')
   }
   environment {
     ACE_COMMAND = "C:\\Program Files\\IBM\\ACE\\12.0.5.0\\ace"
-	ACE_NODE = "ACENODE01"
-	ACE_HOST = "127.0.0.1"
-	ACE_PORT = "4414"
-	ACE_SERVER = "IS01"
-	ACE_APP = "serverInfo"
-	DEPLOY_ENV = "dev"
-	SVC_NAME = "serverinfo"
   }
   stages {
     stage('ACE unit test') {
@@ -38,8 +32,10 @@ pipeline {
 
     stage('ACE apply overrides and deploy') {
       steps {
-        bat '''
-		    CALL "%ACE_COMMAND%"  mqsiapplybaroverride -b %WORKSPACE%\\bars\\%SVC_NAME%.bar -k %ACE_APP% -p %WORKSPACE%\\env\\%DEPLOY_ENV%\\overrides\\%SVC_NAME%.properties 
+	    bat '''
+		    echo "build-env:" %build-env%
+		    CALL %WORKSPACE%\\%build-env%\\env-var\\set-env.bat"
+		    CALL "%ACE_COMMAND%"  mqsiapplybaroverride -b %WORKSPACE%\\bars\\%SVC_NAME%.bar -k %ACE_APP% -p %WORKSPACE%\\%DEPLOY_ENV%\\overrides\\%SVC_NAME%.properties 
             CALL "%ACE_COMMAND%"  ibmint deploy --output-host %ACE_HOST% --output-port %ACE_PORT% --output-server %ACE_SERVER% --input-bar-file %WORKSPACE%\\bars\\%SVC_NAME%.bar 
             CALL "%ACE_COMMAND%"  mqsilist -i %ACE_HOST% -p %ACE_PORT% -e %ACE_SERVER%
 		    '''
